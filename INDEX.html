@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HKDSE SQL學習模擬器 - 香港藝人數據庫</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft JhengHei', 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .sql-input-section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .instructions {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .instructions h4 {
+            color: #2980b9;
+            margin-bottom: 8px;
+        }
+        
+        .instructions ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
+        }
+        
+        #sqlInput {
+            width: 100%;
+            height: 150px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-reset {
+            background-color: #95a5a6;
+            margin-left: 10px;
+        }
+        
+        .btn-reset:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .sql-result-section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .error-box {
+            background: #ffebee;
+            color: #b71c1c;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .success-box {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .result-table th, .result-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        .result-table th {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .result-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .result-table tr:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .sample-queries {
+            margin-top: 20px;
+        }
+        
+        .sample-btn {
+            background-color: #e1f5fe;
+            color: #01579b;
+            border: 1px solid #b3e5fc;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            margin: 0 5px 5px 0;
+            display: inline-block;
+        }
+        
+        .sample-btn:hover {
+            background-color: #b3e5fc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HKDSE SQL學習模擬器</h1>
+            <p>基於香港藝人數據庫 | 覆蓋DSE課程全部SQL內容</p>
+        </header>
+        
+        <div class="main-content">
+            <!-- SQL輸入區域 -->
+            <div class="sql-input-section">
+                <h3 class="section-title">📝 SQL指令輸入</h3>
+                
+                <div class="instructions">
+                    <h4>📚 DSE SQL課程涵蓋內容：</h4>
+                    <ul>
+                        <li>基本查詢：SELECT * FROM artists</li>
+                        <li>字段篩選：SELECT 藝名, 出生年份 FROM artists</li>
+                        <li>條件過濾：WHERE 性別='女' 或 出生年份>1980</li>
+                        <li>排序查詢：ORDER BY 出道年份 DESC</li>
+                        <li>聚合函數：COUNT, SUM, AVG, MAX, MIN</li>
+                        <li>分組查詢：GROUP BY 狀態</li>
+                        <li>去重查詢：SELECT DISTINCT 出生地 FROM artists</li>
+                    </ul>
+                    <h4>📋 合法字段名：</h4>
+                    <p>藝名、本名、性別、出生年份、出生地、職業、出道年份、主要語言、所屬平台/廠牌、狀態、代表作品</p>
+                </div>
+                
+                <textarea id="sqlInput" placeholder="請輸入SQL查詢指令，例如：
+SELECT 藝名, 出生年份 FROM artists WHERE 性別='女'"></textarea>
+                
+                <button class="btn" onclick="executeSql()">執行SQL</button>
+                <button class="btn btn-reset" onclick="resetInput()">清空輸入</button>
+                
+                <div class="sample-queries">
+                    <h4>💡 點擊使用範例查詢：</h4>
+                    <button class="sample-btn" onclick="loadSample('basic')">基本查詢</button>
+                    <button class="sample-btn" onclick="loadSample('filter')">條件過濾</button>
+                    <button class="sample-btn" onclick="loadSample('sort')">排序查詢</button>
+                    <button class="sample-btn" onclick="loadSample('aggregate')">聚合函數</button>
+                    <button class="sample-btn" onclick="loadSample('group')">分組查詢</button>
+                </div>
+            </div>
+            
+            <!-- SQL結果區域 -->
+            <div class="sql-result-section">
+                <h3 class="section-title">📊 查詢結果</h3>
+                
+                <div id="errorBox" class="error-box"></div>
+                <div id="successBox" class="success-box"></div>
+                
+                <table id="resultTable" class="result-table">
+                    <thead id="tableHeader"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化藝人數據（基於提供的數據）
+        const artistsData = [
+            {
+                "藝名": "張學友", "本名": "張學友", "性別": "男", "出生年份": 1961,
+                "出生地": "香港", "職業": "歌手 / 演員", "出道年份": 1984,
+                "主要語言": "粵語", "所屬平台/廠牌": "環球唱片", "狀態": "活躍",
+                "代表作品": "《吻別》《一路上有你》"
+            },
+            {
+                "藝名": "陳奕迅", "本名": "陳奕迅", "性別": "男", "出生年份": 1974,
+                "出生地": "香港", "職業": "歌手 / 演員", "出道年份": 1995,
+                "主要語言": "粵語", "所屬平台/廠牌": "環球唱片", "狀態": "活躍",
+                "代表作品": "《K歌之王》《十年》"
+            },
+            {
+                "藝名": "梅艷芳", "本名": "梅艷芳", "性別": "女", "出生年份": 1963,
+                "出生地": "香港", "職業": "歌手 / 演員", "出道年份": 1982,
+                "主要語言": "粵語", "所屬平台/廠牌": "華星唱片", "狀態": "已故",
+                "代表作品": "《女人花》《壞女孩》"
+            },
+            {
+                "藝名": "張國榮", "本名": "張國榮", "性別": "男", "出生年份": 1956,
+                "出生地": "香港", "職業": "歌手 / 演員", "出道年份": 1985,
+                "主要語言": "粵語", "所屬平台/廠牌": "華星唱片", "狀態": "已故",
+                "代表作品": "《沉默是金》《男人哭吧不是罪》"
+            },
+            {
+                "藝名": "劉德華", "本名": "劉福榮", "性別": "男", "出生年份": 1961,
+                "出生地": "香港", "職業": "歌手 / 演員", "出道年份": 1999,
+                "主要語言": "粵語", "所屬平台/廠牌": "寰亞音樂", "狀態": "活躍",
+                "代表作品": "《忘情水》《心經》"
+            },
+            {
+                "藝名": "容祖兒", "本名": "容祖兒", "性別": "女", "出生年份": 1980,
+                "出生地": "香港", "職業": "歌手", "出道年份": 1999,
+                "主要語言": "粵語", "所屬平台/廠牌": "英皇娛樂", "狀態": "活躍",
+                "代表作品": "《習慣失戀》《心淡》"
+            },
+            {
+                "藝名": "謝安琪", "本名": "謝安琪", "性別": "女", "出生年份": 1977,
+                "出生地": "香港", "職業": "歌手", "出道年份": 2005,
+                "主要語言": "粵語", "所屬平台/廠牌": "新藝寶唱片", "狀態": "活躍",
+                "代表作品": "《喜帖街》《鍾無艷》"
+            },
+            {
+                "藝名": "張敬軒", "本名": "張敬軒", "性別": "男", "出生年份": 1981,
+                "出生地": "廣州", "職業": "歌手", "出道年份": 2002,
+                "主要語言": "粵語", "所屬平台/廠牌": "英皇娛樂", "狀態": "活躍",
+                "代表作品": "《酷愛》《櫻花樹下》"
+            },
+            {
+                "藝名": "許廷鏗", "本名": "許廷鏗", "性別": "男", "出生年份": 1988,
+                "出生地": "香港", "職業": "歌手", "出道年份": 2010,
+                "主要語言": "粵語", "所屬平台/廠牌": "星夢娛樂", "狀態": "活躍",
+                "代表作品": "《面具》《青春頌》"
+            },
+            {
+                "藝名": "陳柏宇", "本名": "陳柏宇", "性別": "男", "出生年份": 1983,
+                "出生地": "香港", "職業": "歌手", "出道年份": 2007,
+                "主要語言": "粵語", "所屬平台/廠牌": "Sony Music", "狀態": "活躍",
+                "代表作品": "《你瞞我瞞》《逸後》"
+            },
+            {
+                "藝名": "林家謙", "本名": "林家謙", "性別": "男", "出生年份": 1991,
+                "出生地": "香港", "職業": "歌手 / 音樂製作人", "出道年份": 2019,
+                "主要語言": "粵語", "所屬平台/廠牌": "Terence Lam Production", "狀態": "活躍",
+                "代表作品": "《下一個章節》《一人之境》"
+            }
+        ];
+
+        // 合法字段名
+        const validColumns = Object.keys(artistsData[0]);
+        
+        // 加載範例查詢
+        function loadSample(type) {
+            const sqlInput = document.getElementById('sqlInput');
+            
+            switch(type) {
+                case 'basic':
+                    sqlInput.value = 'SELECT 藝名, 本名, 出生年份 FROM artists';
+                    break;
+                case 'filter':
+                    sqlInput.value = 'SELECT 藝名, 職業 FROM artists WHERE 性別="女"';
+                    break;
+                case 'sort':
+                    sqlInput.value = 'SELECT 藝名, 出道年份 FROM artists ORDER BY 出道年份 DESC';
+                    break;
+                case 'aggregate':
+                    sqlInput.value = 'SELECT COUNT(*) FROM artists WHERE 狀態="活躍"';
+                    break;
+                case 'group':
+                    sqlInput.value = 'SELECT 性別, COUNT(*) FROM artists GROUP BY 性別';
+                    break;
+            }
+        }
+        
+        // 清空輸入框
+        function resetInput() {
+            document.getElementById('sqlInput').value = '';
+            document.getElementById('errorBox').style.display = 'none';
+            document.getElementById('successBox').style.display = 'none';
+            document.getElementById('resultTable').style.display = 'none';
+        }
+        
+        // 檢測SQL錯誤
+        function detectSqlErrors(sqlCmd) {
+            const errors = [];
+            const sqlLower = sqlCmd.toLowerCase().trim();
+            
+            // 1. 檢查是否以SELECT開頭
+            if (!sqlLower.startsWith('select')) {
+                errors.push("SQL指令必須以SELECT開頭（DSE SQL核心為查詢語句）");
+            } else {
+                // 2. 檢查是否包含FROM子句
+                if (!sqlLower.includes('from')) {
+                    errors.push("缺少必要的FROM子句，必須指定要查詢的數據表");
+                } else {
+                    // 3. 檢查表名是否正確
+                    const fromMatch = sqlLower.match(/from\s+(\w+)/);
+                    if (fromMatch && fromMatch[1] !== 'artists') {
+                        errors.push(`數據表名錯誤，僅支持artists表（你輸入了${fromMatch[1]}）`);
+                    }
+                }
+                
+                // 4. 檢查字段名是否合法
+                if (sqlLower.includes('from')) {
+                    const selectPart = sqlLower.split('from')[0].replace('select', '').trim();
+                    if (selectPart !== '*') {
+                        const columns = selectPart.split(',').map(col => col.trim());
+                        columns.forEach(col => {
+                            // 處理聚合函數
+                            const colClean = col.replace(/(count|sum|avg|max|min)\((.*?)\)/, '$2').trim();
+                            if (colClean && colClean !== '*' && !validColumns.includes(colClean)) {
+                                errors.push(`字段名'${colClean}'不存在，合法字段：${validColumns.join('、')}`);
+                            }
+                        });
+                    }
+                }
+                
+                // 5. 檢查ORDER BY語法
+                if (sqlLower.includes('order by')) {
+                    const orderMatch = sqlLower.match(/order by\s+(\w+)/);
+                    if (orderMatch) {
+                        const orderCol = orderMatch[1].trim();
+                        if (!validColumns.includes(orderCol)) {
+                            errors.push(`排序字段'${orderCol}'不存在，合法字段：${validColumns.join('、')}`);
+                        }
+                    }
+                }
+                
+                // 6. 檢查GROUP BY語法
+                if (sqlLower.includes('group by')) {
+                    const groupMatch = sqlLower.match(/group by\s+(\w+)/);
+                    if (groupMatch) {
+                        const groupCol = groupMatch[1].trim();
+                        if (!validColumns.includes(groupCol)) {
+                            errors.push(`分組字段'${groupCol}'不存在，合法字段：${validColumns.join('、')}`);
+                        }
+                    }
+                }
+                
+                // 7. 檢查聚合函數語法
+                const aggFunctions = ['count(', 'sum(', 'avg(', 'max(', 'min('];
+                aggFunctions.forEach(func => {
+                    if (sqlLower.includes(func)) {
+                        const openCount = (sqlLower.match(new RegExp(func, 'g')) || []).length;
+                        const closeCount = (sqlLower.match(/\)/g) || []).length;
+                        if (openCount > closeCount) {
+                            errors.push(`聚合函數${func.slice(0, -1)}語法錯誤，缺少閉合括號)`);
+                        }
+                    }
+                });
+                
+                // 8. 檢查WHERE子句
+                if (sqlLower.includes('where')) {
+                    let wherePart = sqlLower.split('where')[1];
+                    if (wherePart.includes('order by')) wherePart = wherePart.split('order by')[0];
+                    if (wherePart.includes('group by')) wherePart = wherePart.split('group by')[0];
+                    if (wherePart.trim() === '') {
+                        errors.push("WHERE子句後缺少過濾條件");
+                    }
+                }
+            }
+            
+            return errors;
+        }
+        
+        // 執行SQL查詢
+        function executeSqlQuery(sqlCmd) {
+            const sqlLower = sqlCmd.toLowerCase();
+            let result = JSON.parse(JSON.stringify(artistsData)); // 深拷貝數據
+            let selectedColumns = [...validColumns];
+            
+            // 1. 處理SELECT子句
+            if (sqlLower.includes('from')) {
+                const selectPart = sqlLower.split('from')[0].replace('select', '').trim();
+                
+                // 處理字段選擇
+                if (selectPart !== '*') {
+                    const columns = selectPart.split(',').map(col => col.trim());
+                    const colNames = [];
+                    const aggResults = {};
+                    let hasAggregation = false;
+                    
+                    columns.forEach(col => {
+                        // 處理聚合函數
+                        const aggMatch = col.match(/(count|sum|avg|max|min)\((.*?)\)/);
+                        if (aggMatch) {
+                            hasAggregation = true;
+                            const func = aggMatch[1];
+                            const aggCol = aggMatch[2].trim();
+                            
+                            if (aggCol === '*' && func === 'count') {
+                                aggResults['count(*)'] = result.length;
+                            } else if (validColumns.includes(aggCol)) {
+                                const colValues = result.map(item => item[aggCol]);
+                                
+                                if (func === 'count') {
+                                    aggResults[`count(${aggCol})`] = colValues.filter(val => val !== undefined).length;
+                                } else if (func === 'sum' || func === 'avg') {
+                                    const numericValues = colValues.filter(val => !isNaN(parseInt(val))).map(Number);
+                                    if (numericValues.length === 0) {
+                                        throw new Error(`SUM/AVG函數僅適用於數值型字段（${aggCol}不是數值型）`);
+                                    }
+                                    
+                                    const sum = numericValues.reduce((a, b) => a + b, 0);
+                                    if (func === 'sum') {
+                                        aggResults[`sum(${aggCol})`] = sum;
+                                    } else {
+                                        aggResults[`avg(${aggCol})`] = (sum / numericValues.length).toFixed(2);
+                                    }
+                                } else if (func === 'max') {
+                                    const numericValues = colValues.filter(val => !isNaN(parseInt(val))).map(Number);
+                                    aggResults[`max(${aggCol})`] = Math.max(...numericValues);
+                                } else if (func === 'min') {
+                                    const numericValues = colValues.filter(val => !isNaN(parseInt(val))).map(Number);
+                                    aggResults[`min(${aggCol})`] = Math.min(...numericValues);
+                                }
+                            }
+                        } else {
+                            // 普通字段
+                            if (validColumns.includes(col)) {
+                                colNames.push(col);
+                            }
+                        }
+                    });
+                    
+                    // 如果有聚合函數，直接返回
+                    if (hasAggregation && Object.keys(aggResults).length > 0) {
+                        return {
+                            headers: Object.keys(aggResults),
+                            data: [Object.values(aggResults)]
+                        };
+                    }
+                    
+                    // 應用字段篩選
+                    if (colNames.length > 0) {
+                        selectedColumns = colNames;
+                        result = result.map(item => {
+                            const newItem = {};
+                            colNames.forEach(col => {
+                                newItem[col] = item[col];
+                            });
+                            return newItem;
+                        });
+                    }
+                    
+                    // 處理去重
+                    if (selectPart.includes('distinct')) {
+                        const seen = new Set();
+                        result = result.filter(item => {
+                            const key = JSON.stringify(item);
+                            if (!seen.has(key)) {
+                                seen.add(key);
+                                return true;
+                            }
+                            return false;
+                        });
+                    }
+                }
+            }
+            
+            // 2. 處理WHERE子句
+            if (sqlLower.includes('where')) {
+                let wherePart = sqlLower.split('where')[1];
+                if (wherePart.includes('order by')) wherePart = wherePart.split('order by')[0];
+                if (wherePart.includes('group by')) wherePart = wherePart.split('group by')[0];
+                wherePart = wherePart.trim();
+                
+                result = filterByWhereClause(result, wherePart);
+            }
+            
+            // 3. 處理GROUP BY子句
+            if (sqlLower.includes('group by')) {
+                const groupMatch = sqlLower.match(/group by\s+(\w+)/);
+                if (groupMatch) {
+                    const groupCol = groupMatch[1];
+                    
+                    const groups = {};
+                    result.forEach(item => {
+                        const key = item[groupCol];
+                        groups[key] = (groups[key] || 0) + 1;
+                    });
+                    
+                    // 轉換結果格式
+                    selectedColumns = ['分組字段', '數量'];
+                    result = Object.entries(groups).map(([key, value]) => ({
+                        '分組字段': key,
+                        '數量': value
+                    }));
+                }
+            }
+            
+            // 4. 處理ORDER BY子句
+            if (sqlLower.includes('order by')) {
+                const orderMatch = sqlLower.match(/order by\s+(\w+)\s*(asc|desc)?/);
+                if (orderMatch) {
+                    const orderCol = orderMatch[1];
+                    const orderDir = (orderMatch[2] || 'asc').toLowerCase();
+                    
+                    result.sort((a, b) => {
+                        const valA = a[orderCol];
+                        const valB = b[orderCol];
+                        
+                        // 數值比較
+                        if (!isNaN(parseInt(valA)) && !isNaN(parseInt(valB))) {
+                            return orderDir === 'asc' 
+                                ? parseInt(valA) - parseInt(valB) 
+                                : parseInt(valB) - parseInt(valA);
+                        }
+                        
+                        // 字符串比較
+                        return orderDir === 'asc' 
+                            ? valA.localeCompare(valB, 'zh-HK') 
+                            : valB.localeCompare(valA, 'zh-HK');
+                    });
+                }
+            }
+            
+            // 格式化結果
+            const formattedData = result.map(item => {
+                const row = [];
+                selectedColumns.forEach(col => {
+                    row.push(item[col] || '');
+                });
+                return row;
+            });
+            
+            return {
+                headers: selectedColumns,
+                data: formattedData
+            };
+        }
+        
+        // WHERE條件過濾
+        function filterByWhereClause(data, condition) {
+            const operators = ['>=', '<=', '!=', '=', '>', '<'];
+            let operator = '';
+            
+            // 找到運算符
+            for (const op of operators) {
+                if (condition.includes(op)) {
+                    operator = op;
+                    break;
+                }
+            }
+            
+            if (!operator) {
+                throw new Error(`WHERE條件運算符錯誤，支持的運算符：${operators.join('、')}`);
+            }
+            
+            // 拆分字段和值
+            const [colName, valueStr] = condition.split(operator).map(part => part.trim());
+            if (!colName || !valueStr) {
+                throw new Error("WHERE條件格式錯誤，正確格式：字段名 運算符 '值'");
+            }
+            
+            // 驗證字段名
+            if (!validColumns.includes(colName)) {
+                throw new Error(`WHERE條件中的字段'${colName}'不存在`);
+            }
+            
+            // 處理值（去除引號）
+            const value = valueStr.replace(/['"]/g, '');
+            
+            // 執行過濾
+            return data.filter(item => {
+                const cellValue = item[colName];
+                
+                // 數值比較
+                if (!isNaN(parseInt(cellValue)) && !isNaN(parseInt(value))) {
+                    const numCell = parseInt(cellValue);
+                    const numValue = parseInt(value);
+                    
+                    switch (operator) {
+                        case '=': return numCell === numValue;
+                        case '>': return numCell > numValue;
+                        case '<': return numCell < numValue;
+                        case '>=': return numCell >= numValue;
+                        case '<=': return numCell <= numValue;
+                        case '!=': return numCell !== numValue;
+                    }
+                }
+                
+                // 字符串比較
+                switch (operator) {
+                    case '=': return cellValue === value;
+                    case '!=': return cellValue !== value;
+                    default: throw new Error(`字符串比較僅支持 = 和 != 運算符（你使用了${operator}）`);
+                }
+            });
+        }
+        
+        // 顯示結果表格
+        function displayResult(result) {
+            const headerElement = document.getElementById('tableHeader');
+            const bodyElement = document.getElementById('tableBody');
+            
+            // 清空舊內容
+            headerElement.innerHTML = '';
+            bodyElement.innerHTML = '';
+            
+            // 創建表頭
+            const headerRow = document.createElement('tr');
+            result.headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            headerElement.appendChild(headerRow);
+            
+            // 創建表格內容
+            result.data.forEach(row => {
+                const tr = document.createElement('tr');
+                row.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    tr.appendChild(td);
+                });
+                bodyElement.appendChild(tr);
+            });
+            
+            // 顯示表格
+            document.getElementById('resultTable').style.display = 'table';
+        }
+        
+        // 主執行函數
+        function executeSql() {
+            const sqlInput = document.getElementById('sqlInput');
+            const sqlCmd = sqlInput.value.trim();
+            const errorBox = document.getElementById('errorBox');
+            const successBox = document.getElementById('successBox');
+            
+            // 重置顯示狀態
+            errorBox.style.display = 'none';
+            successBox.style.display = 'none';
+            document.getElementById('resultTable').style.display = 'none';
+            
+            // 空輸入檢查
+            if (!sqlCmd) {
+                errorBox.textContent = '請輸入有效的SQL查詢指令！';
+                errorBox.style.display = 'block';
+                return;
+            }
+            
+            // 第一步：檢測錯誤
+            const errors = detectSqlErrors(sqlCmd);
+            if (errors.length > 0) {
+                errorBox.textContent = '❌ 檢測到SQL語法錯誤：\n' + errors.join('\n');
+                errorBox.style.display = 'block';
+                return;
+            }
+            
+            // 第二步：執行SQL查詢
+            try {
+                const result = executeSqlQuery(sqlCmd);
+                
+                // 顯示成功信息
+                successBox.textContent = `✅ SQL執行成功！共返回 ${result.data.length} 條記錄`;
+                successBox.style.display = 'block';
+                
+                // 顯示結果
+                displayResult(result);
+                
+            } catch (error) {
+                errorBox.textContent = `❌ SQL執行出錯：${error.message}\n💡 提示：請檢查語法格式，例如字符串需加引號，數值不需要引號`;
+                errorBox.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
