@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數據庫操作模擬器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+        
+        .left-panel {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            border-right: 1px solid #eee;
+        }
+        
+        .right-panel {
+            flex: 2;
+            min-width: 500px;
+            padding: 20px;
+        }
+        
+        .panel-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .table-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .table-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        
+        .table-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .table-columns {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .table-rows {
+            font-size: 0.9rem;
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .input-area {
+            margin-bottom: 20px;
+        }
+        
+        .sql-input {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 1rem;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        .sql-input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-help {
+            background-color: #9b59b6;
+            color: white;
+        }
+        
+        .btn-help:hover {
+            background-color: #8e44ad;
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .result-container {
+            margin-top: 20px;
+        }
+        
+        .result-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .result-area {
+            min-height: 200px;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .error-message {
+            background-color: #ffeaea;
+            color: #c0392b;
+            border-left: 4px solid #c0392b;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        
+        .success-message {
+            background-color: #eaffea;
+            color: #27ae60;
+            border-left: 4px solid #27ae60;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        
+        .sql-examples {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .example-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #3498db;
+        }
+        
+        .example-query {
+            background-color: #e8f4fc;
+            padding: 8px 10px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            font-family: monospace;
+            cursor: pointer;
+            border: 1px solid #d1e7f5;
+        }
+        
+        .example-query:hover {
+            background-color: #d1e7f5;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f1f7fd;
+        }
+        
+        .query-count {
+            font-style: italic;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+        
+        .highlight {
+            background-color: #fffacd;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .left-panel {
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 數據庫操作模擬器</h1>
+            <p class="subtitle">模擬SQL查詢操作，檢測錯誤並輸出結果</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="left-panel">
+                <h2 class="panel-title">📋 數據庫表格</h2>
+                
+                <div class="tables-grid">
+                    <div class="table-card">
+                        <div class="table-name">Classes 表</div>
+                        <div class="table-columns">欄位: ClassID, ClassName, Room</div>
+                        <div class="table-rows">3 筆記錄</div>
+                    </div>
+                    
+                    <div class="table-card">
+                        <div class="table-name">Courses 表</div>
+                        <div class="table-columns">欄位: CourseID, CourseName, Credits</div>
+                        <div class="table-rows">4 筆記錄</div>
+                    </div>
+                    
+                    <div class="table-card">
+                        <div class="table-name">Enrollments 表</div>
+                        <div class="table-columns">欄位: EnrollmentID, StudentID, CourseID, Grade</div>
+                        <div class="table-rows">8 筆記錄</div>
+                    </div>
+                    
+                    <div class="table-card">
+                        <div class="table-name">Students 表</div>
+                        <div class="table-columns">欄位: StudentID, Name, Age, ClassID</div>
+                        <div class="table-rows">8 筆記錄</div>
+                    </div>
+                </div>
+                
+                <div class="sql-examples">
+                    <div class="example-title">📝 SQL 查詢範例 (點擊使用)</div>
+                    <div class="example-query" onclick="useExample('SELECT * FROM Students')">SELECT * FROM Students</div>
+                    <div class="example-query" onclick="useExample('SELECT Name, Age FROM Students WHERE Age > 16')">SELECT Name, Age FROM Students WHERE Age > 16</div>
+                    <div class="example-query" onclick="useExample('SELECT * FROM Courses WHERE Credits = 3')">SELECT * FROM Courses WHERE Credits = 3</div>
+                    <div class="example-query" onclick="useExample('SELECT StudentID, Grade FROM Enrollments WHERE Grade = \\'A\\'')">SELECT StudentID, Grade FROM Enrollments WHERE Grade = 'A'</div>
+                    <div class="example-query" onclick="useExample('SELECT * FROM Classes WHERE Room = \\'Room 101\\'')">SELECT * FROM Classes WHERE Room = 'Room 101'</div>
+                </div>
+                
+                <div class="sql-examples">
+                    <div class="example-title">⚠️ 錯誤範例 (檢測功能)</div>
+                    <div class="example-query" onclick="useExample('SELECT * FROM NonExistentTable')">SELECT * FROM NonExistentTable</div>
+                    <div class="example-query" onclick="useExample('SELECT InvalidColumn FROM Students')">SELECT InvalidColumn FROM Students</div>
+                    <div class="example-query" onclick="useExample('SELECT * FROM Students WHERE InvalidCondition')">SELECT * FROM Students WHERE InvalidCondition</div>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <h2 class="panel-title">🔍 SQL 查詢輸入</h2>
+                
+                <div class="input-area">
+                    <textarea class="sql-input" id="sqlInput" placeholder="請輸入SQL查詢指令，例如：SELECT * FROM Students"></textarea>
+                    
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="executeQuery()">執行查詢</button>
+                        <button class="btn btn-secondary" onclick="showAllTables()">顯示所有表格</button>
+                        <button class="btn btn-help" onclick="showHelp()">幫助</button>
+                        <button class="btn btn-danger" onclick="clearResults()">清除結果</button>
+                    </div>
+                </div>
+                
+                <div id="messageArea"></div>
+                
+                <div class="result-container">
+                    <div class="result-title">
+                        <h2 class="panel-title">📊 查詢結果</h2>
+                        <span id="resultCount"></span>
+                    </div>
+                    
+                    <div class="result-area" id="resultArea">
+                        <!-- 查詢結果將顯示在這裡 -->
+                        請輸入SQL查詢指令並點擊「執行查詢」按鈕
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>數據庫模擬器 | 支援表格: Classes, Courses, Enrollments, Students | 支援指令: SELECT</p>
+        </footer>
+    </div>
+
+    <script>
+        // 數據庫表格數據
+        const database = {
+            Classes: [
+                { ClassID: 1, ClassName: '6A', Room: 'Room 101' },
+                { ClassID: 2, ClassName: '6B', Room: 'Room 102' },
+                { ClassID: 3, ClassName: '6C', Room: 'Room 103' }
+            ],
+            Courses: [
+                { CourseID: 1, CourseName: 'Mathematics', Credits: 3 },
+                { CourseID: 2, CourseName: 'English', Credits: 3 },
+                { CourseID: 3, CourseName: 'Computer Science', Credits: 4 },
+                { CourseID: 4, CourseName: 'Physics', Credits: 3 }
+            ],
+            Enrollments: [
+                { EnrollmentID: 1, StudentID: 1, CourseID: 1, Grade: 'A' },
+                { EnrollmentID: 2, StudentID: 1, CourseID: 2, Grade: 'B+' },
+                { EnrollmentID: 3, StudentID: 1, CourseID: 3, Grade: 'A' },
+                { EnrollmentID: 4, StudentID: 2, CourseID: 1, Grade: 'B' },
+                { EnrollmentID: 5, StudentID: 2, CourseID: 3, Grade: 'A' },
+                { EnrollmentID: 6, StudentID: 3, CourseID: 2, Grade: 'A' },
+                { EnrollmentID: 7, StudentID: 3, CourseID: 4, Grade: 'B+' },
+                { EnrollmentID: 8, StudentID: 4, CourseID: 1, Grade: 'C+' }
+            ],
+            Students: [
+                { StudentID: 1, Name: 'Amy Wong', Age: 17, ClassID: 1 },
+                { StudentID: 2, Name: 'Bob Chan', Age: 16, ClassID: 1 },
+                { StudentID: 3, Name: 'Carol Lee', Age: 17, ClassID: 2 },
+                { StudentID: 4, Name: 'David Lam', Age: 18, ClassID: 2 },
+                { StudentID: 5, Name: 'Eva Ho', Age: 16, ClassID: 3 },
+                { StudentID: 6, Name: 'Frank Yip', Age: 17, ClassID: 1 },
+                { StudentID: 7, Name: 'Grace Tam', Age: 18, ClassID: 3 },
+                { StudentID: 8, Name: 'Henry Ng', Age: 16, ClassID: 2 }
+            ]
+        };
+
+        // 表格結構定義
+        const tableSchemas = {
+            Classes: ['ClassID', 'ClassName', 'Room'],
+            Courses: ['CourseID', 'CourseName', 'Credits'],
+            Enrollments: ['EnrollmentID', 'StudentID', 'CourseID', 'Grade'],
+            Students: ['StudentID', 'Name', 'Age', 'ClassID']
+        };
+
+        // 使用範例查詢
+        function useExample(sql) {
+            document.getElementById('sqlInput').value = sql;
+        }
+
+        // 顯示幫助信息
+        function showHelp() {
+            const helpText = `
+支援的SQL指令格式：
+1. SELECT * FROM 表名
+2. SELECT 欄位1, 欄位2 FROM 表名
+3. SELECT 欄位1, 欄位2 FROM 表名 WHERE 條件
+
+WHERE條件支援：
+- 數值比較：Age > 16, Credits = 3
+- 字串比較：Name = 'Amy Wong', Room = 'Room 101'
+- 文字匹配：Grade = 'A'
+
+可用表格：
+- Classes: ClassID, ClassName, Room
+- Courses: CourseID, CourseName, Credits
+- Enrollments: EnrollmentID, StudentID, CourseID, Grade
+- Students: StudentID, Name, Age, ClassID
+
+範例查詢：
+- SELECT * FROM Students
+- SELECT Name, Age FROM Students WHERE Age > 16
+- SELECT * FROM Courses WHERE Credits = 3
+- SELECT StudentID, Grade FROM Enrollments WHERE Grade = 'A'
+            `;
+            
+            showMessage(helpText, 'info');
+        }
+
+        // 顯示所有表格內容
+        function showAllTables() {
+            let resultHTML = '';
+            
+            for (const tableName in database) {
+                resultHTML += `<h3>${tableName} 表</h3>`;
+                resultHTML += generateTableHTML(tableName, database[tableName]);
+                resultHTML += `<div class="query-count">共 ${database[tableName].length} 筆記錄</div><br>`;
+            }
+            
+            document.getElementById('resultArea').innerHTML = resultHTML;
+            document.getElementById('resultCount').innerHTML = '';
+            clearMessage();
+        }
+
+        // 執行SQL查詢
+        function executeQuery() {
+            const sqlInput = document.getElementById('sqlInput').value.trim();
+            
+            if (!sqlInput) {
+                showMessage('錯誤：SQL指令不能為空！', 'error');
+                return;
+            }
+            
+            const sqlUpper = sqlInput.toUpperCase();
+            
+            // 檢查是否為SELECT指令
+            if (!sqlUpper.startsWith('SELECT')) {
+                showMessage('錯誤：目前只支援 SELECT 指令！', 'error');
+                return;
+            }
+            
+            try {
+                // 解析SQL指令
+                const parsedQuery = parseSQL(sqlInput);
+                
+                if (parsedQuery.error) {
+                    showMessage(`❌ ${parsedQuery.error}`, 'error');
+                    return;
+                }
+                
+                // 驗證查詢
+                const validationError = validateQuery(parsedQuery);
+                if (validationError) {
+                    showMessage(`❌ ${validationError}`, 'error');
+                    return;
+                }
+                
+                // 執行查詢
+                const result = executeParsedQuery(parsedQuery);
+                
+                // 顯示結果
+                displayResult(parsedQuery, result);
+                
+            } catch (error) {
+                showMessage(`執行錯誤：${error.message}`, 'error');
+            }
+        }
+
+        // 解析SQL指令
+        function parseSQL(sqlCommand) {
+            const sqlUpper = sqlCommand.toUpperCase();
+            
+            // 簡單解析SELECT...FROM...
+            const selectIndex = sqlUpper.indexOf('SELECT');
+            const fromIndex = sqlUpper.indexOf('FROM');
+            
+            if (fromIndex === -1) {
+                return { error: '錯誤：缺少 FROM 子句！' };
+            }
+            
+            // 解析要選擇的欄位
+            const selectPart = sqlCommand.substring(selectIndex + 6, fromIndex).trim();
+            let columns = [];
+            
+            if (selectPart === '*') {
+                columns = ['*'];
+            } else {
+                columns = selectPart.split(',').map(col => col.trim());
+            }
+            
+            // 解析表格名稱和WHERE子句
+            const remaining = sqlCommand.substring(fromIndex + 4).trim();
+            const whereIndex = sqlUpper.indexOf('WHERE', fromIndex);
+            
+            let tableName, whereClause;
+            
+            if (whereIndex === -1) {
+                tableName = remaining.replace(/;$/g, '').trim();
+                whereClause = null;
+            } else {
+                tableName = sqlCommand.substring(fromIndex + 4, whereIndex).trim();
+                whereClause = sqlCommand.substring(whereIndex + 5).replace(/;$/g, '').trim();
+            }
+            
+            return {
+                columns: columns,
+                table: tableName,
+                where: whereClause,
+                error: null
+            };
+        }
+
+        // 驗證查詢
+        function validateQuery(parsedQuery) {
+            const tableName = parsedQuery.table;
+            
+            // 檢查表格是否存在
+            if (!database[tableName]) {
+                return `錯誤：表格 '${tableName}' 不存在！<br>可用表格：${Object.keys(database).join(', ')}`;
+            }
+            
+            // 檢查欄位是否存在
+            const columns = parsedQuery.columns;
+            if (columns[0] !== '*') {
+                const validColumns = tableSchemas[tableName];
+                for (const col of columns) {
+                    if (!validColumns.includes(col)) {
+                        return `錯誤：表格 '${tableName}' 中沒有欄位 '${col}'！<br>可用欄位：${validColumns.join(', ')}`;
+                    }
+                }
+            }
+            
+            // 簡單檢查WHERE子句格式
+            if (parsedQuery.where) {
+                const whereClause = parsedQuery.where;
+                // 檢查是否有基本的比較運算符
+                const operators = ['=', '>', '<', '>=', '<=', '!='];
+                const hasOperator = operators.some(op => whereClause.includes(op));
+                
+                if (!hasOperator) {
+                    return `警告：WHERE子句 '${whereClause}' 可能包含無效的比較運算符<br>支援的運算符：${operators.join(', ')}`;
+                }
+            }
+            
+            return null;
+        }
+
+        // 執行解析後的查詢
+        function executeParsedQuery(parsedQuery) {
+            const tableName = parsedQuery.table;
+            let data = [...database[tableName]];
+            
+            // 應用WHERE過濾
+            if (parsedQuery.where) {
+                data = applyWhereFilter(data, parsedQuery.where, tableName);
+            }
+            
+            // 選擇特定欄位
+            if (parsedQuery.columns[0] !== '*') {
+                const selectedColumns = parsedQuery.columns;
+                data = data.map(row => {
+                    const newRow = {};
+                    selectedColumns.forEach(col => {
+                        newRow[col] = row[col];
+                    });
+                    return newRow;
+                });
+            }
+            
+            return data;
+        }
+
+        // 應用WHERE條件過濾
+        function applyWhereFilter(data, whereClause, tableName) {
+            return data.filter(row => {
+                try {
+                    // 簡單的WHERE條件解析
+                    // 支援 =, >, <, >=, <=, !=
+                    const operators = ['>=', '<=', '!=', '=', '>', '<'];
+                    let operator = '';
+                    let conditionParts = [];
+                    
+                    for (const op of operators) {
+                        if (whereClause.includes(op)) {
+                            operator = op;
+                            conditionParts = whereClause.split(op).map(part => part.trim());
+                            break;
+                        }
+                    }
+                    
+                    if (conditionParts.length !== 2) {
+                        return true; // 如果解析失敗，不過濾任何數據
+                    }
+                    
+                    const [field, value] = conditionParts;
+                    
+                    // 檢查欄位是否存在
+                    if (!tableSchemas[tableName].includes(field)) {
+                        return true; // 欄位不存在，不過濾
+                    }
+                    
+                    // 處理字串值（去除引號）
+                    let compareValue = value;
+                    if ((value.startsWith("'") && value.endsWith("'")) || 
+                        (value.startsWith('"') && value.endsWith('"'))) {
+                        compareValue = value.substring(1, value.length - 1);
+                    }
+                    
+                    // 嘗試轉換為數字（如果可能）
+                    const rowValue = row[field];
+                    const numericValue = isNaN(compareValue) ? compareValue : Number(compareValue);
+                    const numericRowValue = isNaN(rowValue) ? rowValue : Number(rowValue);
+                    
+                    // 執行比較
+                    switch (operator) {
+                        case '=':
+                            return String(numericRowValue) === String(numericValue);
+                        case '!=':
+                            return String(numericRowValue) !== String(numericValue);
+                        case '>':
+                            return numericRowValue > numericValue;
+                        case '<':
+                            return numericRowValue < numericValue;
+                        case '>=':
+                            return numericRowValue >= numericValue;
+                        case '<=':
+                            return numericRowValue <= numericValue;
+                        default:
+                            return true;
+                    }
+                } catch (error) {
+                    return true; // 解析失敗，不過濾
+                }
+            });
+        }
+
+        // 顯示查詢結果
+        function displayResult(parsedQuery, result) {
+            const tableName = parsedQuery.table;
+            
+            if (result.length === 0) {
+                document.getElementById('resultArea').innerHTML = '查詢結果：0 筆記錄';
+                document.getElementById('resultCount').innerHTML = '';
+                showMessage('查詢完成，但沒有找到符合條件的記錄。', 'info');
+                return;
+            }
+            
+            // 確定要顯示的欄位
+            const displayColumns = parsedQuery.columns[0] === '*' ? 
+                tableSchemas[tableName] : parsedQuery.columns;
+            
+            // 生成HTML表格
+            const resultHTML = generateTableHTML(tableName, result, displayColumns);
+            
+            document.getElementById('resultArea').innerHTML = resultHTML;
+            document.getElementById('resultCount').innerHTML = `共 ${result.length} 筆記錄`;
+            
+            // 顯示成功訊息
+            const whereText = parsedQuery.where ? ` WHERE ${parsedQuery.where}` : '';
+            const successMsg = `✅ 查詢成功: SELECT ${parsedQuery.columns.join(', ')} FROM ${parsedQuery.table}${whereText}`;
+            showMessage(successMsg, 'success');
+        }
+
+        // 生成HTML表格
+        function generateTableHTML(tableName, data, displayColumns = null) {
+            const columns = displayColumns || tableSchemas[tableName];
+            
+            let html = `<table>
+                <thead>
+                    <tr>`;
+            
+            // 表頭
+            columns.forEach(col => {
+                html += `<th>${col}</th>`;
+            });
+            
+            html += `</tr>
+                </thead>
+                <tbody>`;
+            
+            // 表格內容
+            data.forEach(row => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    html += `<td>${row[col]}</td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += `</tbody>
+            </table>`;
+            
+            return html;
+        }
+
+        // 顯示訊息
+        function showMessage(message, type = 'info') {
+            const messageArea = document.getElementById('messageArea');
+            
+            let className = 'success-message';
+            if (type === 'error') {
+                className = 'error-message';
+            } else if (type === 'info') {
+                className = 'success-message';
+                // 修改背景色為信息提示的顏色
+                messageArea.innerHTML = `<div class="success-message" style="background-color: #e8f4fc; color: #3498db; border-color: #3498db;">${message}</div>`;
+                return;
+            }
+            
+            messageArea.innerHTML = `<div class="${className}">${message}</div>`;
+            
+            // 3秒後自動清除訊息（錯誤訊息除外）
+            if (type !== 'error') {
+                setTimeout(clearMessage, 5000);
+            }
+        }
+
+        // 清除訊息
+        function clearMessage() {
+            document.getElementById('messageArea').innerHTML = '';
+        }
+
+        // 清除結果
+        function clearResults() {
+            document.getElementById('resultArea').innerHTML = '請輸入SQL查詢指令並點擊「執行查詢」按鈕';
+            document.getElementById('resultCount').innerHTML = '';
+            document.getElementById('sqlInput').value = '';
+            clearMessage();
+        }
+
+        // 初始化頁面
+        function initPage() {
+            // 預設載入一個查詢範例
+            document.getElementById('sqlInput').value = "SELECT * FROM Students";
+            
+            // 顯示歡迎訊息
+            setTimeout(() => {
+                showMessage('歡迎使用數據庫模擬器！請輸入SQL查詢指令或使用左側的查詢範例。', 'info');
+            }, 500);
+        }
+
+        // 頁面載入完成後初始化
+        window.onload = initPage;
+    </script>
+</body>
+</html>
